@@ -1,0 +1,10 @@
+! comment
+! another comment
+### START
+#
+building: 32 Cowper Road
+#
+loc: Hallway
+desc: A dim, cluttered hallway
+#
+### END
