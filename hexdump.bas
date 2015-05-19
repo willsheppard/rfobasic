@@ -55,7 +55,7 @@ fn.def listasciidump( s$, wid )
 !!
  	list.create S, dm
 	sl = len(s$)
-	addr = 1			% character offset (default: 1)
+	addr = 1	  % character offset
 	do 
 		r$ = ""				% string to print
 		saddr = addr		% start address 
@@ -69,10 +69,8 @@ fn.def listasciidump( s$, wid )
 			r$ = r$ + h$ + " " 
 			w = w + 1
 			if w > wid then xdone = 1
-			!addr = addr + 1
+			addr = addr + 1
 			if i >= sl then xdone = 1
-   !if i > sl - 1 then xdone = 1
-   addr = addr + 1
 		until xdone
 		r$ = r$ + "'" 
 		! loop for printing only printable chars
@@ -124,13 +122,13 @@ fn.def printasciidump( s$, wid )
 		until xdone
 		r$ = r$ + "'" 
 		! loop for printing only printable chars
-		for i = saddr to saddr + wid
+		for i = saddr to saddr + wid - 1
 			c$ = mid$( s$, i, 1 )
 			ca = ascii(c$)
 			if ((ca >= 32) & (ca <= 126)) then		
 				r$ = r$ + c$
 			else
-				r$ = r$ + "."
+				r$ = r$ + "★"
 			endif
 		next i
 		r$ = r$ + "'" 
