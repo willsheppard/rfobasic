@@ -5,9 +5,17 @@
 		printasciidump$ to print a hex dump of an ascii string.
 		listasciidump$ load a list with the hex dump of an ascii string.
 	
+ AUTHOR
 	Rev. Jonathan C. Watt
 	Fourth Sunday after the Epiphany
 	January 2012
+
+ CHANGES
+ * Fixed bug where the original text output was one more character than the hex output (Will Sheppard, May 2015)
+ * Display a star for non-printable characters (Will Sheppard, May 2015)
+
+ VERSION
+ 0.2
 !!
 
 fn.def hex$( b )
@@ -47,32 +55,34 @@ fn.def listasciidump( s$, wid )
 !!
  	list.create S, dm
 	sl = len(s$)
-	addr = 1				% character offset
+	addr = 1			% character offset (default: 1)
 	do 
-		r$ = ""				% strint to print
+		r$ = ""				% string to print
 		saddr = addr		% start address 
-		r$ = r$ + format$("%%%%", addr-1) + " - "; 
+		r$ = r$ + format$("%%%%", addr-1) + " - "
 		w = 1				% keep track of the width
 		xdone = 0
-		do 
+		do
 			c$ = mid$(s$,addr,1)
 			a = ascii(c$)
 			h$ = hex$(a)
 			r$ = r$ + h$ + " " 
 			w = w + 1
 			if w > wid then xdone = 1
-			addr = addr + 1
+			!addr = addr + 1
 			if i >= sl then xdone = 1
+   !if i > sl - 1 then xdone = 1
+   addr = addr + 1
 		until xdone
 		r$ = r$ + "'" 
 		! loop for printing only printable chars
-		for i = saddr to saddr + wid
+		for i = saddr to saddr + wid - 1
 			c$ = mid$( s$, i, 1 )
 			ca = ascii(c$)
 			if ((ca >= 32) & (ca <= 126)) then
 				r$ = r$ + c$
 			else
-				r$ = r$ + "."
+				r$ = r$ + "★"
 			endif
 		next i
 		r$ = r$ + "'" 
@@ -99,7 +109,7 @@ fn.def printasciidump( s$, wid )
 	do 
 		r$ = ""				% strint to print
 		saddr = addr		% start address 
-		r$ = r$ + format$("%%%%", addr-1) + " - "; 
+		r$ = r$ + format$("%%%%", addr-1) + " - "
 		w = 1				% keep track of the width
 		xdone = 0
 		do 
