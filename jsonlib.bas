@@ -192,7 +192,7 @@ jsnp_parse:
   jsnp_white(jsnpa[])
   If jsnpa[1] <> 0 Then   %we should have exhausted all chars in the JSON string
     Print "Extra chars found"
-    Goto jsnp_failfail
+    Goto jsnp_fail
   Endif
   
 !Clean up after ourselves
