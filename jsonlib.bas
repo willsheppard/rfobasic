@@ -172,6 +172,7 @@ jsnp_parse:
     jsnp_parse_retval = -1
     Return
   Endif
+  debug.print "json string is " + format$("###", jsnp_l) + " chars long"
   Stack.create S, jsnp_sptr
   Dim jsnpa[7+jsnp_l]
   jsnpa[2] = 8
@@ -191,7 +192,7 @@ jsnp_parse:
   jsnp_white(jsnpa[])
   If jsnpa[1] <> 0 Then   %we should have exhausted all chars in the JSON string
     Print "Extra chars found"
-    Goto jsnp_fail
+    Goto jsnp_failfail
   Endif
   
 !Clean up after ourselves
@@ -428,7 +429,6 @@ jsnp_startprog:
 
 
 !!
-json_text1$ = "{\"coord\":{\"lon\":-80.34,\"lat\":39.28},\"sys\":{\"type\":1,\"id\":3051,\"message\":0.0303,\"country\":\"US\",\"sunrise\":1412248740,\"sunset\":1412290920}}"
 
 json_text2$ = "{\"coord\":{\"lon\":-80.34,\"lat\":39.28},\"sys\":{\"type\":1,\"id\":3051,\"message\":0.0303,\"country\":\"US\",\"sunrise\":1412248740,\"sunset\":1412290920},\"weather\":[{\"id\":741,\"main\":\"Fog\",\"description\":\"fog\",\"icon\":\"50n\"},{\"id\":701,\"main\":\"Mist\",\"description\":\"mist\",\"icon\":\"50n\"}],\"base\":\"cmc stations\",\"main\":{\"temp\":285.3,\"pressure\":1018,\"humidity\":100,\"temp_min\":284.15,\"temp_max\":287.15},\"wind\":{\"speed\":1.76,\"deg\":179.007},\"clouds\":{\"all\":90},\"dt\":1412228100,\"id\":4802316,\"name\":\"Clarksburg\",\"cod\":200}"
 
@@ -450,7 +450,7 @@ debug.print "there are "+format$("###", num_lines)+" lines"
 
 !=====MAIN function
 
-debug.off
+debug.on
 
 fn.def parse_json(jsnp_text$, jsnp_bptr)
 
@@ -475,12 +475,22 @@ fn.end
 
 
 ! Test
-!!
+
+json_text1$ = "{\"coord\":{\"lon\":-80.34,\"lat\":39.28},\"sys\":{\"type\":1,\"id\":3051,\"message\":0.0303,\"country\":\"US\",\"sunrise\":1412248740,\"sunset\":1412290920}}"
+
+include hexdump.bas
+include fileslurp.bas
+
+let s$ = fileslurp$("json.txt")
+!hexdump(json_text1$)
+hexdump(s$)
+
 bundle.create bb
-parse_json(json_text1$, &bb)
+!parse_json(json_text1$, &bb)
+parse_json(s$, &bb)
 
 debug.print "result = "
 debug.dump.bundle bb
-!!
+
 
 
