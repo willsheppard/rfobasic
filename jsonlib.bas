@@ -462,7 +462,7 @@ debug.print "there are "+format$("###", num_lines)+" lines"
 
 !=====MAIN function
 
-debug.on
+!debug.on
 
 fn.def parse_json(jsnp_text$, jsnp_bptr)
 
