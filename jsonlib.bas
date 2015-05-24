@@ -1,9 +1,21 @@
+!!
 
-! Basic! JSON Parser
-! This was downloaded from http://laughton.com/basic/programs/utilities/
-! and modified to run as a function
+DESCRIPTION
 
-!
+Basic! JSON Parser
+This was downloaded from http://laughton.com/basic/programs/utilities/
+
+NOTES
+
+* Modified to run as a function (Will Sheppard, May 2015)
+
+Patches welcome.
+
+http://github.com/willsheppard/rfobasic
+
+!!
+
+
 !ASCII Code Reference (decimal values):
 !
 !   ¨   double quote     34
@@ -458,8 +470,7 @@ fn.def parse_json(jsnp_text$, jsnp_bptr)
 
     !jsnp_text$ = json_text3$
     debug.print "Dump of original JSON text:"
-    debug.print jsnp_text$
-
+    debug.print jsnp_text3$
     debug.print "Calling the parser"
 
     !Bundle.create jsnp_bptr
@@ -473,6 +484,7 @@ fn.def parse_json(jsnp_text$, jsnp_bptr)
 fn.end
 !=====END OF MAIN function
 
+!!
 
 ! Test
 
@@ -492,5 +504,5 @@ parse_json(s$, &bb)
 debug.print "result = "
 debug.dump.bundle bb
 
-
+!!
 

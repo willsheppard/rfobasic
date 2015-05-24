@@ -1,4 +1,6 @@
 !!
+ DESCRIPTION
+
 	hexdump.bas 
 	This file contains 3 functions 
 		hex$ to convert a byte to a hexadecimal string
@@ -6,17 +8,28 @@
 		listasciidump$ load a list with the hex dump of an ascii string.
 	
  AUTHOR
+
 	Rev. Jonathan C. Watt
 	Fourth Sunday after the Epiphany
 	January 2012
 
  CHANGES
- * Fixed bug where the original text output was one more character than the hex output (Will Sheppard, May 2015)
- * Display a star for non-printable characters (Will Sheppard, May 2015)
 
- VERSION
- 0.2
+ * Fixed bug where the original text output was one more character than the hex output (Will Sheppard, May 2015)
+ * Display a star instead of dot for non-printable characters (Will Sheppard, May 2015)
+
+ VERSION 0.2
+
+ http://github.com/willsheppard/rfobasic
 !!
+
+fn.def hexdump( s$ )
+    ! Convenience function
+    let wid = 10
+    call printasciidump( s$, wid )
+    fn.rtn 1
+fn.end
+
 
 fn.def hex$( b )
 !!
