@@ -30,11 +30,13 @@ bundle.create r % r for records
 let datafile$ = "jogu_data.txt"
 load_jogu_data(&r, datafile$)
 
-let starting_location$ = "32 Cowper Road+Hallway"
+let starting_building$ = "32 Cowper Road"
+let starting_location$ = starting_building$ + "+Hallway"
 bundle.contain r, starting_location$, start_exists
 if start_exists = 0 then end "ERROR: start location \"" + starting_location$ + "\" not found"
 
 current_location$ = starting_location$
+current_building$ = starting_building$
 
 !cls
 
@@ -48,15 +50,12 @@ fn.def bundle_get_keys$(bundle)
     list.size list, size
     for i = 1 to size
         list.get list, i, key$
-        bundle.type bundle, key$, type$
-        if type$ = "S"
-            bundle.get bundle, key$, value$
-            out$ = out$ + key$
-        else
-            bundle.get bundle, key$, format$("######", value)
-            out$ = out$ + key$
-        endif
-
+        bundle.get bundle, key$, value$
+        if out$ = "" then
+            out$ = out$ + key$
+        else
+            out$ = out$ + ", " + key$
+        end if
     next i
     fn.rtn out$
 fn.end
@@ -64,8 +63,10 @@ fn.end
 
 ! ******************************************
 ! Display current location
-fn.def foo(r, current_location$)
+fn.def foo(r, current_location$, current_building$)
 ! ******************************************
+!    while 1 % change this to allow quitting
+
     ! Check current location
     bundle.contain r, current_location$, current_exists
     if current_exists = 0 then end "ERROR: current location \"" + current_location$ + "\" not found"
@@ -80,6 +81,7 @@ fn.def foo(r, current_location$)
 
     ! Display current location
     print ""
+    print "(" + current_building$ + ")"
     print "==================================="
     print loc$
     print ""
@@ -88,15 +90,39 @@ fn.def foo(r, current_location$)
     print "Exits: " + exits$
     print ""
 
-    ! Display prompt
+    ! Display prompt and read input
     tget command$, "Type a command > ", "Jogu Adventure"
-    !print "I recognise: " + command$
+
+    ! Remove newline from the end
+    !array.delete command_chars$[]
+    !split command_chars$[], command$, ""
+!debug.on
+!debug.print "hello"
+!    debug.dump.array command_chars$[]
+!end "done"
+    print "I recognise: " + command$
 
     ! Parse command
     let valid_command = bar(command$)
+!!
+    if valid_command = 0
+    then
+        print "Sorry, I don't recognise \"" + command$ + "\", try something else..."
+        w_r.continue
+    end if
+!!
 
+!!
     ! Change current location
-    ! ...needs data
+    ! If command is a direction
+    ! TODO: Normalise direction, e.g. uppercase
+    bundle.get exits_bundle, command$, new_location$
+    new_location_key$ = current_building$ + "+" + new_location$
+    !bundle.get r, new_location_key$, new_here
+
+    current_location$ = current_building$ + "+" + new_location$
+!!
+!    repeat % main "while" loop
 
     fn.rtn 1
 
@@ -135,9 +161,8 @@ fn.end
 ! Main
 
 while 1
-    foo(r, current_location$)
+foo(r, current_location$, current_building$)
 repeat
-
 
 !!
 Wait for user input
