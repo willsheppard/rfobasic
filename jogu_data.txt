@@ -1,0 +1,18 @@
+! comment
+! another comment
+### START
+#
+building: 32 Cowper Road
+#
+loc: Hallway
+desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
+exits: N=Living Room,E= Bedroom, W = Entrance Hallway,S =Kitchen
+#
+loc: Kitchen
+desc: A compact kitchen which looks well used. A door to the southeastern opens onto the garden.
+exits: N=Hallway,S = Garden
+#
+loc: Garden
+desc: A patio surrounded by shrubs and trees. A high fence with a gate encloses the area.
+exits: N
+### END

@@ -1,75 +1,57 @@
 !!
-TODO
-* nothing
+
+DESCRIPTION
+
+Load a text data file and process the records into a hash of hashes (bundle of bundles).
+
+The custom data format is designed to be human writeable, the focus being on ease-of-use from a mobile device.
+
+NOTES
+
+* 
+
+Patches welcome.
+
+AUTHOR
+
+Will Sheppard
+
+http://github.com/willsheppard/rfobasic
+
 !!
+
+!!
+TODO
+* Use grabfile to read file, and split on \n
+!!
+
+
+! INCLUDES
+
+include dumper.bas
+
+! ************** MAIN FUNCTION ***************
+fn.def load_jogu_data(records, datafile$)
 
 ! CONSTANTS
 
 let label_location$ = "loc"
 let label_building$ = "building"
-
-print "Loading..."
+let label_exits$    = "exits"
+!let datafile$       = "jogu.txt"
 
 ! Config
-debug.on
-!debug.echo.on
-datafile$ = "mud.txt"
-
-! #########################################
-
-! Functions
-
-FN.DEF bprint(bundle, msg$)
- debug.PRINT msg$
-
- ! get the list of the keys
- ! in this bundle
- ! and the number of keys
- ! if the numbers of keys
- ! is zero then the bundle
- ! has no keys
-
- BUNDLE.KEYS bundle, list
- LIST.SIZE list, size
- IF size = 0
-  debug.PRINT "Empty bundle"
-  debug.PRINT " "
-  FN.RTN 0
- ENDIF
-
- ! For each key,
- ! get the key type
- ! and then get key's
- ! value base upon
- ! the type
-
- FOR i = 1 TO size
-  LIST.GET list, i, key$
-  BUNDLE.TYPE bundle, key$, type$
-  IF type$ = "S"
-   BUNDLE.GET bundle, key$, value$
-   debug.PRINT key$, value$
-  ELSE
-   BUNDLE.GET bundle, key$, value
-   debug.PRINT key$, value
-  ENDIF
- NEXT i
-
- debug.PRINT " "
- FN.RTN 1
-FN.END
-
+!debug.on
 
 ! #########################################
 
 ! Setup
-! File.exists(is_datafile_ok, datafile$)
+file.exists is_datafile_ok, datafile$
+if ! is_datafile_ok then end "cannot open file \""+datafile$+"\" (does it exist?)"
 text.open r, fh, datafile$
 let data_started = 0
 let serial_data$ = ""
 do
-    !Debug.show.program
-
     text.readln fh, line$
     debug.print "processing line: "+line$
 
@@ -100,16 +82,14 @@ debug.print "there are "+format$("###", num_records)+" raw records"
 debug.print "all records BEGIN: "+serial_data$+" END."
 
 ! split the data into records
-! TODO try using a list instead
-! maybe need to count records first?
 split records_raw$[], serial_data$, "#\n"
 
 ! print records for debugging
 array.length num_records_split, records_raw$[]
 debug.print "there are "+format$("###", num_records_split)+" split records"
 
-!list.create N, records
-bundle.create records
+!debug.on
+
 building$ = ""
 for i=1 to num_records_split
     debug.print "record "+format$("#",i)+" = '"+records_raw$[i]+"'"
@@ -126,11 +106,38 @@ for i=1 to num_records_split
     bundle.create record
     let location$ = ""
     for j=1 to num_fields
+
+        ! parse the record
         array.delete parts$[]
         split parts$[], fields$[j], ": "
         let label$ = parts$[1]
         let content$ = parts$[2]
-        bundle.put record, label$, content$
+
+        ! parse exits
+        if label$ = label_exits$ then
+
+            array.delete exits$[]
+            split exits$[], content$, ",\\s?"
+            debug.dump.array exits$[]
+
+            ! convert to bundle
+            array.length num_exits, exits$[]
+            bundle.create exits_bundle
+            for k = 1 to num_exits
+
+! TODO: Split on = here for destinations
+
+                bundle.put exits_bundle, exits$[k], "true"
+            next k
+
+            bundle.put record, label$, exits_bundle
+
+        else
+            ! parse non-exit data
+
+            ! save record
+            bundle.put record, label$, content$
+        end if
 
         ! update current building
         if label$ = label_building$ then building$ = content$
@@ -140,23 +147,50 @@ for i=1 to num_records_split
 
     next
 
-    debug.print "Record bundle:"
-    debug.dump.bundle record
+    !debug.print "Record bundle:"
+    !debug.dump.bundle record
+
+! DEBUG
+!debug.off
+!dumper(record)
+!debug.on
+!end "that was a record ~π|°$=×√¶√=$¶¶"
+! /DEBUG
 
     if building$ = "" then end "missing building definition"
 
     ! add record to the main bundle, indexed by building+location
+    ! building entries won't have a location
     record_key$ = building$+"+"+location$
     bundle.put records, record_key$, record
 
-debug.print "Records bundle:"
-debug.dump.bundle records
+!debug.print "Records bundle:"
+!debug.dump.bundle records
 
 next i
 
+debug.print "--------------------------"
 debug.print "Records bundle:"
 debug.dump.bundle records
 
-!cls
+!include dumper.bas
+!dumper(records)
+
+fn.rtn records
+
+fn.end
 
 
+!!
+! ####################################
+! Test
+
+bundle.create b
+let datafile$ = "jogu_data.txt"
+load_jogu_data(&b, datafile$)
+
+!include dumper.bas
+debug.off
+dumper(b)
+
+!!
