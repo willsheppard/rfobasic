@@ -8,8 +8,6 @@ The custom data format is designed to be human writeable, the focus being on eas
 
 NOTES
 
-* 
-
 Patches welcome.
 
 AUTHOR
@@ -23,6 +21,7 @@ http://github.com/willsheppard/rfobasic
 !!
 TODO
 * Use grabfile to read file, and split on \n
+* Validate data: Required fields, unexpected fields, exits must all lead somewhere, etc.
 !!
 
 
@@ -154,17 +153,8 @@ for i=1 to num_records_split
 
     next
 
-    !debug.print "Record bundle:"
-    !debug.dump.bundle record
-
-!!
-! DEBUG
-debug.off
-dumper(record)
-debug.on
-!end "that was a record ~π|°$=×√¶√=$¶¶"
-! /DEBUG
-!!
+    debug.print "Record bundle:"
+    debug.dump.bundle record
 
     if building$ = "" then end "missing building definition"
 
@@ -173,8 +163,8 @@ debug.on
     record_key$ = building$+"+"+location$
     bundle.put records, record_key$, record
 
-!debug.print "Records bundle:"
-!debug.dump.bundle records
+    !debug.print "Records bundle:"
+    !debug.dump.bundle records
 
 next i
 

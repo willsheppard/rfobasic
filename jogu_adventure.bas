@@ -1,30 +1,46 @@
-! JOGU ADVENTURE
-! a toy adventure project
-! (c) 2015 Will Sheppard
-! http://github.com/willsheppard/rfobasic
-
 !!
-Pseudo code:
-Load description data into data structure
-Verify data integrity
+
+NAME
+
+Jogu Adventure
+
+DESCRIPTION
+
+A text adventure game / Interactive fiction.
+
+The associated text data file can be rewritten with whatever new locations you can dream up.
+
+NOTES
+
+If I had more time, I would add objects which can be examined, picked up and used.
+
+Program flow:
+
+Load description data
 Display starting location
 Wait for user input
 Parse input
 If direction, check exits
-If exit exists, display that description.
-If action, display object description.
-If quit or exit, do that.
-Wait for user input.
-!!
+If exit exists, display that description
+If quit, do that
+
+Patches welcome.
+
+BUGS
+
+The built-in 'tget' function requires the cursor to remain where it is following the prompt (v1.87). If you move the cursor by accident, it may send something different than what you typed.
+
+AUTHOR
+
+Will Sheppard
+
+http://github.com/willsheppard/rfobasic
 
 !!
-TODO
-* sort exits alphabetically
-* sort exits in custom order: N, E, S, W, etc.
-!!
 
-! load data
-include load_jogu_data.bas
+! Load data
+include load_jogu_data.bas % load_jogu_data
+include utils/toolkit.bas % bundle_get_keys substr, chomp
 
 bundle.create r % r for records
 let datafile$ = "jogu_data.txt"
@@ -39,31 +55,11 @@ current_location$ = starting_location$
 current_building$ = starting_building$
 
 ! ******************************************
-! Return a bundle's keys as a string
-fn.def bundle_get_keys$(bundle)
-! ******************************************
-    let out$ = ""
-
-    bundle.keys bundle, list
-    list.size list, size
-    for i = 1 to size
-        list.get list, i, key$
-        bundle.get bundle, key$, value$
-        if out$ = "" then
-            out$ = out$ + key$
-        else
-            out$ = out$ + ", " + key$
-        end if
-    next i
-    fn.rtn out$
-fn.end
-
-
-! ******************************************
 ! Display current location
-fn.def foo(r, current_location$, current_building$)
+fn.def jogu_main_loop(r, current_location$, current_building$)
 ! ******************************************
-    while command$ <> "Q"
+    let quit = 0
+    while quit = 0
     !cls
 
     ! Check current location
@@ -133,27 +129,32 @@ fn.def foo(r, current_location$, current_building$)
 
     if parsed_command$ <> "" then
         ! User wants to "look"
+        ! Just loop and the description will be printed again
         debug.print "I parsed: '" + parsed_command$ + "'"
         w_r.continue
     end if
 
+    let parsed_command$ = parse_quit$(command$)
+    if parsed_command$ <> "" then
+        ! User wants to quit
+        debug.print "I parsed: '" + parsed_command$ + "'"
+        let quit = 1
+        w_r.break % redundant
+    end if
+
     ! Nothing matched, command is not recognised
     debug.print "I parsed: '" + parsed_command$ + "'"
-    
-    !if parsed_command$ = ""
-    !then
-        print "Sorry, I don't recognise \"" + command$ + "\", try something else..."
-        w_r.continue
-    !end if
+    print "Sorry, I don't recognise \"" + command$ + "\", try something else..."
 
     repeat % main "while" loop
+
+    print "\n...\n\nYou jack out of the matrix and return to reality."
 
     fn.rtn 1
 
 fn.end
 
 ! ******************************************
-! Parse the command, check if valid
 fn.def parse_direction$(command$)
 ! ******************************************
     ! List of valid directions
@@ -190,7 +191,9 @@ fn.def parse_direction$(command$)
     end if
 fn.end
 
+! ******************************************
 fn.def parse_look$(command$)
+! ******************************************
     if command$ = "look" | command$ = "l" then
         fn.rtn "l"
     else
@@ -198,63 +201,19 @@ fn.def parse_look$(command$)
     end if
 fn.end
 
-fn.def substr$(string$, start, length)
-    array.delete chars$[]
-    split chars$[], string$, ""
-    debug.print "Original string is: '" + string$ + "', that breaks down to:"
-    debug.dump.array chars$[]
-
-    let newstring$ = ""
-    let offset = 1 % to avoid empty char in first slot
-    for i = start to start + length - offset
-        newstring$ = newstring$ + chars$[i+offset]
-    next i
-    debug.print "Extracted substring: '" + newstring$ + "'"
-
-    fn.rtn newstring$
+! ******************************************
+fn.def parse_quit$(command$)
+! ******************************************
+    if command$ = "quit" | command$ = "q" then
+        fn.rtn "q"
+    else
+        fn.rtn ""
+    end if
 fn.end
 
-! Remove newline from end of the string
-fn.def chomp$(string$)
-    array.delete chars$[]
-    split chars$[], string$, ""
-    array.length length, chars$[]
-    newstring$ = substr$(string$, 1, length - 2) % 2 = 1 empty char on first slot + 1 newline in final slot
-    fn.rtn newstring$
-fn.end
 
-!!
-
-!fn.def get_first_char(
-
-!fn.def validate_command(
-!!
-
-! ******************************************
-! ******************************************
-
-! ******************************************
-! ******************************************
-
-! ******************************************
-! ******************************************
-
-! #########################################
-
+! ##########################################
 ! Main
 
-foo(r, current_location$, current_building$)
-
-
-!!
-Wait for user input
-Parse input
-If direction, check exits
-If exit exists, display that description.
-If action, display object description.
-If quit or exit, do that.
-Wait for user input.
-!!
-
-
+jogu_main_loop(r, current_location$, current_building$)
 
