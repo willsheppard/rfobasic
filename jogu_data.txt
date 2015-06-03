@@ -8,11 +8,51 @@ loc: Hallway
 desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
 exits: N=Living Room,E= Bedroom, W = Entrance Hallway,S =Kitchen
 #
+loc: Bedroom
+desc: A neat and tidy bedroom with a large wooden bed which fills most of the room, and a cot in the corner.
+exits: W=Hallway
+#
+loc: Living Room
+desc: A large room with bookshelves, a flatscreen television and a brown sofa with a cat sleeping on it. There are children's toys scattered around the floor.
+exits: S=Hallway, E=Nursery
+#
+!obj: cat
+!desc: the cat is tortoiseshell coloured, with white feet. It is quite small and sleeping soundly, emitting a soft sigh every now and again
+!desc-get: the cat allows you to pick it up
+#
+loc: Nursery
+desc: The room is filled with toys, bags of clothes and other various junk. In amongst the clutter you can see several unopened toy boxes.
+exits: W=Living Room
+#
 loc: Kitchen
-desc: A compact kitchen which looks well used. A door to the southeastern opens onto the garden.
+desc: A compact kitchen which looks well used. A door to the south opens onto the garden.
 exits: N=Hallway,S = Garden
 #
 loc: Garden
 desc: A patio surrounded by shrubs and trees. A high fence with a gate encloses the area.
-exits: N
+exits: N=Kitchen, S=Behind the garden
+#
+loc: Behind the garden
+desc: You are in a small area surrounded by fences and full of overgrown trees and weeds. There are several flower pots here, the flowers in them long dead. A passageway leads west, and there is a small shed to the south.
+exits: N= Garden, S=Garden shed, W=Garden passage
+#
+loc: Garden shed
+desc: The shed is so small you can hardly move. Everything is dirty and covered with cobwebs.
+exits: N=Behind the garden
+#
+loc: Garden Passage
+desc: A narrow passageway leads between two fences
+exits: E=Behind the garden, W=Neighbour's patio
+#
+loc: Neighbour's patio
+desc: You are in your neighbours's garden. There is a low wall to the west, where you can see an apple tree in the next garden. To the north lies a passageway which leads back to the street.
+exits: N=Cowper Road, E=Garden passage, W=Apple tree
+#
+loc: Apple tree
+desc: You can see several apples on the tree. There is a faint whiff of cat poo in the air.
+exits: E=Neighbour's patio
+#
+loc: Cowper Road
+desc: You are in Cowper Road, part of Poet's Corner - a peaceful Acton street. Cars are parked on both sides of the road. Some of the cars have bird poo on them.
+exits: S=Neighbour's patio
 ### END

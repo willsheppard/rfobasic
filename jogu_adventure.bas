@@ -38,8 +38,6 @@ if start_exists = 0 then end "ERROR: start location \"" + starting_location$ + "
 current_location$ = starting_location$
 current_building$ = starting_building$
 
-!cls
-
 ! ******************************************
 ! Return a bundle's keys as a string
 fn.def bundle_get_keys$(bundle)
@@ -65,7 +63,8 @@ fn.end
 ! Display current location
 fn.def foo(r, current_location$, current_building$)
 ! ******************************************
-!    while 1 % change this to allow quitting
+    while command$ <> "Q"
+    !cls
 
     ! Check current location
     bundle.contain r, current_location$, current_exists
@@ -73,7 +72,6 @@ fn.def foo(r, current_location$, current_building$)
 
     ! Get current location data
     bundle.get r, current_location$, here
-    !dumper(here)
     bundle.get here, "loc", loc$
     bundle.get here, "desc", desc$
     bundle.get here, "exits", exits_bundle
@@ -91,38 +89,64 @@ fn.def foo(r, current_location$, current_building$)
     print ""
 
     ! Display prompt and read input
+    !NOTE: tget command doesn't work properly before RFO BASIC v1.88
     tget command$, "Type a command > ", "Jogu Adventure"
 
     ! Remove newline from the end
-    !array.delete command_chars$[]
-    !split command_chars$[], command$, ""
-!debug.on
-!debug.print "hello"
-!    debug.dump.array command_chars$[]
-!end "done"
-    print "I recognise: " + command$
+    array.delete command_chars$[]
+    split command_chars$[], command$, ""
+    debug.print "You entered: '" + command$ + "'"
+
+    ! Process raw input
+    command$ = chomp$(command$) % remove newline
+    command$ = lower$(command$)
+    debug.print "I processed: '" + command$ + "'"
 
     ! Parse command
-    let valid_command = bar(command$)
-!!
-    if valid_command = 0
-    then
-        print "Sorry, I don't recognise \"" + command$ + "\", try something else..."
-        w_r.continue
-    end if
-!!
 
-!!
+    let parsed_command$ = parse_direction$(command$)
+
+    if parsed_command$ <> "" then
+    ! User entered a location
+    debug.print "I parsed: '" + parsed_command$ + "'"
+
     ! Change current location
     ! If command is a direction
-    ! TODO: Normalise direction, e.g. uppercase
-    bundle.get exits_bundle, command$, new_location$
-    new_location_key$ = current_building$ + "+" + new_location$
-    !bundle.get r, new_location_key$, new_here
+    parsed_exit$ = upper$(parsed_command$)
+    bundle.contain exits_bundle, parsed_exit$, is_direction_valid
+    if is_direction_valid = 0
+    then
+        print "You can't go that way"
+        w_r.continue
+    end if
 
+    ! Direction is valid, change location
+    bundle.get exits_bundle, parsed_exit$, new_location$
+    new_location_key$ = current_building$ + "+" + new_location$
     current_location$ = current_building$ + "+" + new_location$
-!!
-!    repeat % main "while" loop
+
+    w_r.continue
+
+    end if % direction
+
+    let parsed_command$ = parse_look$(command$)
+
+    if parsed_command$ <> "" then
+        ! User wants to "look"
+        debug.print "I parsed: '" + parsed_command$ + "'"
+        w_r.continue
+    end if
+
+    ! Nothing matched, command is not recognised
+    debug.print "I parsed: '" + parsed_command$ + "'"
+    
+    !if parsed_command$ = ""
+    !then
+        print "Sorry, I don't recognise \"" + command$ + "\", try something else..."
+        w_r.continue
+    !end if
+
+    repeat % main "while" loop
 
     fn.rtn 1
 
@@ -130,22 +154,81 @@ fn.end
 
 ! ******************************************
 ! Parse the command, check if valid
-fn.def bar(command$)
+fn.def parse_direction$(command$)
 ! ******************************************
-    ! Load list of valid commands
-    ! TODO: Read from a data file instead
-    bundle.create all_valid_commands
-    bundle.put all_valid_commands, "N", 1
-     bundle.put all_valid_commands, "E", 1
-    bundle.put all_valid_commands, "S", 1
-   bundle.put all_valid_commands, "W", 1
+    ! List of valid directions
+    bundle.create v
+    bundle.put v, "n", "n"
+    bundle.put v, "e", "e"
+    bundle.put v, "s", "s"
+    bundle.put v, "w", "w"
+    bundle.put v, "north", "n"
+    bundle.put v, "east", "e"
+    bundle.put v, "south", "s"
+    bundle.put v, "west", "w"
+    bundle.put v, "ne", "ne"
+    bundle.put v, "se", "se"
+    bundle.put v, "nw", "nw"
+    bundle.put v, "sw", "sw"
+    bundle.put v, "northeast", "ne"
+    bundle.put v, "southeast", "se"
+    bundle.put v, "northwest", "nw"
+    bundle.put v, "southwest", "sw"
+    bundle.put v, "north-east", "ne"
+    bundle.put v, "south-east", "se"
+    bundle.put v, "north-west", "nw"
+    bundle.put v, "south-west", "sw"
 
     ! Check if command is valid
-    bundle.contain all_valid_commands, command$, is_valid
+    bundle.contain v, command$, valid
 
-    fn.rtn valid
+    if valid then
+        bundle.get v, command$, parsed_command$
+        fn.rtn parsed_command$
+    else
+        fn.rtn ""
+    end if
 fn.end
 
+fn.def parse_look$(command$)
+    if command$ = "look" | command$ = "l" then
+        fn.rtn "l"
+    else
+        fn.rtn ""
+    end if
+fn.end
+
+fn.def substr$(string$, start, length)
+    array.delete chars$[]
+    split chars$[], string$, ""
+    debug.print "Original string is: '" + string$ + "', that breaks down to:"
+    debug.dump.array chars$[]
+
+    let newstring$ = ""
+    let offset = 1 % to avoid empty char in first slot
+    for i = start to start + length - offset
+        newstring$ = newstring$ + chars$[i+offset]
+    next i
+    debug.print "Extracted substring: '" + newstring$ + "'"
+
+    fn.rtn newstring$
+fn.end
+
+! Remove newline from end of the string
+fn.def chomp$(string$)
+    array.delete chars$[]
+    split chars$[], string$, ""
+    array.length length, chars$[]
+    newstring$ = substr$(string$, 1, length - 2) % 2 = 1 empty char on first slot + 1 newline in final slot
+    fn.rtn newstring$
+fn.end
+
+!!
+
+!fn.def get_first_char(
+
+!fn.def validate_command(
+!!
 
 ! ******************************************
 ! ******************************************
@@ -160,9 +243,8 @@ fn.end
 
 ! Main
 
-while 1
 foo(r, current_location$, current_building$)
-repeat
+
 
 !!
 Wait for user input

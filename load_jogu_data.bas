@@ -28,7 +28,7 @@ TODO
 
 ! INCLUDES
 
-include dumper.bas
+include utils/dumper.bas
 
 ! ************** MAIN FUNCTION ***************
 fn.def load_jogu_data(records, datafile$)
@@ -38,7 +38,6 @@ fn.def load_jogu_data(records, datafile$)
 let label_location$ = "loc"
 let label_building$ = "building"
 let label_exits$    = "exits"
-!let datafile$       = "jogu.txt"
 
 ! Config
 !debug.on
@@ -106,6 +105,10 @@ for i=1 to num_records_split
     bundle.create record
     let location$ = ""
     for j=1 to num_fields
+        ! validate record format
+        if ! is_in(":", fields$[j])
+            end "Missing ':' in line: " + fields$[j]
+        end if
 
         ! parse the record
         array.delete parts$[]
@@ -124,10 +127,14 @@ for i=1 to num_records_split
             array.length num_exits, exits$[]
             bundle.create exits_bundle
             for k = 1 to num_exits
+                ! Parse exit destinations
+                array.delete exit_dest$[]
+                split exit_dest$[], exits$[k], "\\s?=\\s?"
+                debug.dump.array exit_dest$[]
+                array.length exit_dest_size, exit_dest$[]
+                if exit_dest_size <> 2 then end "ERROR: Malformed exit data '" + exits$[k] + "'"
 
-! TODO: Split on = here for destinations
-
-                bundle.put exits_bundle, exits$[k], "true"
+                bundle.put exits_bundle, exit_dest$[1], exit_dest$[2]
             next k
 
             bundle.put record, label$, exits_bundle
@@ -150,12 +157,14 @@ for i=1 to num_records_split
     !debug.print "Record bundle:"
     !debug.dump.bundle record
 
+!!
 ! DEBUG
-!debug.off
-!dumper(record)
-!debug.on
+debug.off
+dumper(record)
+debug.on
 !end "that was a record ~π|°$=×√¶√=$¶¶"
 ! /DEBUG
+!!
 
     if building$ = "" then end "missing building definition"
 
