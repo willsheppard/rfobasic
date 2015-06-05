@@ -38,16 +38,26 @@ http://github.com/willsheppard/rfobasic
 
 !!
 
+! ******************************************
+! Start location - change to match the data
+
+let starting_building$ = "Number 32"
+let starting_location$ = "Hallway"
+
+! ******************************************
+! *** Don't change any code below here ***
+
 ! Load data
 include load_jogu_data.bas % load_jogu_data
-include utils/toolkit.bas % bundle_get_keys substr, chomp
+!include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp % already loaded from load_jogu_data.bas
 
 bundle.create r % r for records
 let datafile$ = "jogu_data.txt"
 load_jogu_data(&r, datafile$)
 
-let starting_building$ = "32 Cowper Road"
-let starting_location$ = starting_building$ + "+Hallway"
+! Add building name to start of location key
+let starting_location$ = starting_building$ + "+" + starting_location$
+
 bundle.contain r, starting_location$, start_exists
 if start_exists = 0 then end "ERROR: start location \"" + starting_location$ + "\" not found"
 

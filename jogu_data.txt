@@ -1,8 +1,8 @@
-! comment
-! another comment
+! See notes at end of file
+
 ### START
 #
-building: 32 Cowper Road
+building: Number 32
 #
 loc: Hallway
 desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
@@ -40,7 +40,7 @@ loc: Garden shed
 desc: The shed is so small you can hardly move. Everything is dirty and covered with cobwebs.
 exits: N=Behind the garden
 #
-loc: Garden Passage
+loc: Garden passage
 desc: A narrow passageway leads between two fences
 exits: E=Behind the garden, W=Neighbour's patio
 #
@@ -56,3 +56,32 @@ loc: Cowper Road
 desc: You are in Cowper Road, part of Poet's Corner - a peaceful Acton street. Cars are parked on both sides of the road. Some of the cars have bird poo on them.
 exits: S=Neighbour's patio
 ### END
+
+! NOTES
+
+This is a custom data format (jogu data) for a text adventure game/interactive fiction, which is designed to be easily human writeable, the focus being on ease-of-use from a mobile device.
+
+It is processed by the associated RFO Basic file "load_jogu_data.bas", the game mechanics and main loop being in the file "jogu_adventure.bas".
+
+The idea is to change and add to the locations and descriptions below, in order to create your own world.
+
+Happy writing!
+
+###
+
+Formatting rules:
+* any text before "### START" or after "### END" is ignored.
+* records are separated by a "#" character on its own line
+* there are two types of record:
+    * building records, which are applied to all records following them until the next building record
+    * location records
+* records consist of one or more lines of the format "key: value"
+* building records consist of a single "building" key
+* location records consist of these keys:
+    * loc: human readable name of location
+    * desc: description of location
+    * exits: special format described below
+* exit values are a comma separated list of exit names and location names, see examples below
+    * valid exit names are: N, E, S, W, NE, SE, SW, NW (representing compass points as is traditional)
+    * valid location names are exact matches for "loc" values (case sensitive)
+* TO DO: More than one building

@@ -27,16 +27,24 @@ TODO
 
 ! INCLUDES
 
-include utils/dumper.bas
+include utils/dumper.bas % dumper
+include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp
 
 ! ************** MAIN FUNCTION ***************
 fn.def load_jogu_data(records, datafile$)
 
 ! CONSTANTS
 
-let label_location$ = "loc"
-let label_building$ = "building"
-let label_exits$    = "exits"
+let label_building$    = "building"
+let label_location$    = "loc"
+let label_description$ = "desc"
+let label_exits$       = "exits"
+
+list.create S, valid_location_keys_list
+list.add valid_location_keys_list, label_location$, label_description$, label_exits$
+
+let CONST_LOCATION_RECORD_KEYS_COUNT = 3 % loc, desc, exits
+let CONST_BUILDING_RECORD_KEYS_COUNT = 1
 
 ! Config
 !debug.on
@@ -45,7 +53,7 @@ let label_exits$    = "exits"
 
 ! Setup
 file.exists is_datafile_ok, datafile$
-if ! is_datafile_ok then end "cannot open file \""+datafile$+"\" (does it exist?)"
+if ! is_datafile_ok then end "Error: Cannot open file \""+datafile$+"\" (does it exist?). Cannot continue."
 text.open r, fh, datafile$
 let data_started = 0
 let serial_data$ = ""
@@ -106,7 +114,7 @@ for i=1 to num_records_split
     for j=1 to num_fields
         ! validate record format
         if ! is_in(":", fields$[j])
-            end "Missing ':' in line: " + fields$[j]
+            end error_msg$+"Missing separator ':' in line: " + fields$[j] + "\nCannot continue."
         end if
 
         ! parse the record
@@ -131,7 +139,7 @@ for i=1 to num_records_split
                 split exit_dest$[], exits$[k], "\\s?=\\s?"
                 debug.dump.array exit_dest$[]
                 array.length exit_dest_size, exit_dest$[]
-                if exit_dest_size <> 2 then end "ERROR: Malformed exit data '" + exits$[k] + "'"
+                if exit_dest_size <> 2 then end error_msg$+"Malformed exit data '" + exits$[k] + "'"+"\nCannot continue. "
 
                 bundle.put exits_bundle, exit_dest$[1], exit_dest$[2]
             next k
@@ -156,7 +164,7 @@ for i=1 to num_records_split
     debug.print "Record bundle:"
     debug.dump.bundle record
 
-    if building$ = "" then end "missing building definition"
+    if building$ = "" then end error_msg$+"Missing building definition. Cannot continue"
 
     ! add record to the main bundle, indexed by building+location
     ! building entries won't have a location
@@ -168,6 +176,65 @@ for i=1 to num_records_split
 
 next i
 
+!dumper(records)
+
+! Validate
+let error_msg$ = "Data validation error in file '"+ datafile$ +"': "
+!debug.on
+
+bundle.keys records, locations_list
+debug.dump.list locations_list
+array.delete locations_array$[]
+list.toarray locations_list, locations_array$[]
+debug.dump.array locations_array$[]
+array.length num_locations, locations_array$[]
+debug.print "length = "+str$(num_locations)
+for a = 1 to num_locations
+    bundle.get records, locations_array$[a], record
+
+    debug.dump.bundle record
+    list.create S, record_keys_list
+    bundle.keys record, record_keys_list
+    array.delete record_keys_array$[]
+    list.toarray record_keys_list, record_keys_array$[]
+    array.length num_record_keys, record_keys_array$[]
+    debug.print "num_record_keys = "+str$(num_record_keys)
+
+    ! is it a building record?
+    bundle.contain record, label_building$, is_building
+    debug.print " is building? "+str$(is_building)
+    if is_building
+        if num_record_keys <> CONST_BUILDING_RECORD_KEYS_COUNT
+            print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_BUILDING_RECORD_KEYS_COUNT)+" for building record:"
+            dumper(record)
+            end "Cannot continue."
+        end if
+
+        if record_keys_array$[1] <> label_building$ then end error_msg$+ "Expected building key of '"+label_building$ +"', not '"+ record_keys_array$[1] +"'. Cannot continue."
+
+    else
+        ! assume it is a location record
+
+        if num_record_keys <> CONST_LOCATION_RECORD_KEYS_COUNT then
+            print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_LOCATION_RECORD_KEYS_COUNT)+" for location record:"
+            dumper(record)
+            end "Cannot continue."
+        end if
+
+        ! are the location keys all valid?
+        for b = 1 to num_record_keys
+            let this_key$ = record_keys_array$[b]
+        list.search valid_location_keys_list, this_key$, is_valid
+        if ! is_valid then
+            print error_msg$+"Found invalid key '"+this_key$+"' for location record:"
+            dumper(record)
+            print "Expected one of: " + list_summary$(valid_location_keys_list)
+            end "Cannot continue."
+        end if
+        next b
+    end if
+next a
+
 debug.print "--------------------------"
 debug.print "Records bundle:"
 debug.dump.bundle records
@@ -178,7 +245,6 @@ debug.dump.bundle records
 fn.rtn records
 
 fn.end
-
 
 !!
 ! ####################################
