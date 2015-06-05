@@ -18,9 +18,27 @@ http://github.com/willsheppard/rfobasic
 
 !!
 
+! ******************************************
+! Return a list's items as a string, comma separated
+fn.def list_summary$(list)
+! ******************************************
+    array.delete list_summary_array$[]
+    list.toarray list, list_summary_array$[]
+    array.length num_list_items, list_summary_array $[]
+    let out$ = ""
+    for c = 1 to num_list_items
+        let item$ = list_summary_array$[c]
+        if out$ = "" then
+            out$ = out$ + item$
+        else
+            out$ = out$ + ", " + item$
+        end if
+    next c
+    fn.rtn out$
+fn.end
 
 ! ******************************************
-! Return a bundle's keys as a string
+! Return a bundle's keys as a string, comma separated
 fn.def bundle_get_keys$(bundle)
 ! ******************************************
     let out$ = ""
@@ -39,7 +57,10 @@ fn.def bundle_get_keys$(bundle)
     fn.rtn out$
 fn.end
 
+! ******************************************
+! Easily extract a substring from a string
 fn.def substr$(string$, start, length)
+! ******************************************
     array.delete chars$[]
     split chars$[], string$, ""
     debug.print "Original string is: '" + string$ + "', that breaks down to:"
@@ -55,11 +76,17 @@ fn.def substr$(string$, start, length)
     fn.rtn newstring$
 fn.end
 
-! Remove newline from end of the string
+! ******************************************
+! Remove newline from end of a string
 fn.def chomp$(string$)
+! ******************************************
     array.delete chars$[]
     split chars$[], string$, ""
     array.length length, chars$[]
-    newstring$ = substr$(string$, 1, length - 2) % 2 = 1 empty char on first slot + 1 newline in final slot
+    if chars$[length] = "\n" then
+        newstring$ = substr$(string$, 1, length - 2) % 2 = 1 empty char on first slot + 1 newline in final slot
+    else
+        newstring$ = string$
+    end if
     fn.rtn newstring$
 fn.end
