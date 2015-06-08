@@ -8,17 +8,18 @@ loc: Hallway
 desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
 exits: N=Living Room,E= Bedroom, W = Entrance Hallway,S =Kitchen
 #
+loc: Entrance Hallway
+desc: A long hallway
+exits: E=Hallway
+#
 loc: Bedroom
+! This is a random comment, which is ignored
 desc: A neat and tidy bedroom with a large wooden bed which fills most of the room, and a cot in the corner.
 exits: W=Hallway
 #
 loc: Living Room
 desc: A large room with bookshelves, a flatscreen television and a brown sofa with a cat sleeping on it. There are children's toys scattered around the floor.
 exits: S=Hallway, E=Nursery
-#
-!obj: cat
-!desc: the cat is tortoiseshell coloured, with white feet. It is quite small and sleeping soundly, emitting a soft sigh every now and again
-!desc-get: the cat allows you to pick it up
 #
 loc: Nursery
 desc: The room is filled with toys, bags of clothes and other various junk. In amongst the clutter you can see several unopened toy boxes.
@@ -76,12 +77,14 @@ Formatting rules:
     * building records, which are applied to all records following them until the next building record
     * location records
 * records consist of one or more lines of the format "key: value"
-* building records consist of a single "building" key
-* location records consist of these keys:
+* building records consist of a single "building" key, a colon (:) and the name of the building
+* location records consist of these keys, followed by a colon (:) and a value
     * loc: human readable name of location
     * desc: description of location
     * exits: special format described below
-* exit values are a comma separated list of exit names and location names, see examples below
-    * valid exit names are: N, E, S, W, NE, SE, SW, NW (representing compass points as is traditional)
+* exit values are a comma separated list of exit names and location names joined by an equals sign (=)
+    * valid exit names are uppercase: N, E, S, W, NE, SE, SW, NW (representing compass points as is traditional)
     * valid location names are exact matches for "loc" values (case sensitive)
+* no line-breaks are allowed within each key-value line.
+* The first location record found in the data file will be the starting location.
 * TO DO: More than one building
