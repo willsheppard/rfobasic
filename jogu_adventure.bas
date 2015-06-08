@@ -13,7 +13,7 @@ The associated text data file can be rewritten with whatever new locations you c
 NOTES
 
 If I had more time, I would add:
-- multiple buildings
+- multiple buildings/areas
 - objects which can be examined, picked up and used
 
 Program flow:
@@ -40,39 +40,41 @@ http://github.com/willsheppard/rfobasic
 
 !!
 
-! ******************************************
-! Start location - change to match the data
-
-let starting_building$ = "Number 32"
-let starting_location$ = "Hallway"
-
-! ******************************************
-! *** Don't change any code below here ***
-
 ! Load data
 include load_jogu_data.bas % load_jogu_data
 !include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp % already loaded from load_jogu_data.bas
 
+! Outputs
 bundle.create r % r for records
+bundle.create c % c for config
+
+! Inputs
 let datafile$ = "jogu_data.txt"
-load_jogu_data(&r, datafile$)
 
-! Add building name to start of location key
-let starting_location$ = starting_building$ + "+" + starting_location$
+load_jogu_data(&r, &c, datafile$)
 
-bundle.contain r, starting_location$, start_exists
-if start_exists = 0 then end "ERROR: start location \"" + starting_location$ + "\" not found"
+!dumper(r)
 
-!current_location$ = starting_location$
-!current_building$ = starting_building$
+! Get starting location from the data
+let label_starting_location$ = "starting_location"
+bundle.get c, label_starting_location$, starting_index$
+
+
+bundle.contain r, starting_index$, start_exists
+if start_exists = 0 then end "ERROR: start location \"" + starting_index$ + "\" not found"
 
 ! ******************************************
 ! Display current location
-fn.def jogu_main_loop(r, current_location$, current_building$)
+fn.def jogu_main_loop(r, current_location$)
 ! ******************************************
     let quit = 0
     while quit = 0
     !cls
+
+    ! Extract the building name from the key
+    array.delete location_parts$[]
+    split location_parts$[], current_location$, "\\+"
+    let current_building$ = location_parts$[1]
 
     ! Check current location
     bundle.contain r, current_location$, current_exists
@@ -226,5 +228,5 @@ fn.end
 ! ##########################################
 ! Main
 
-jogu_main_loop(r, starting_location$, starting_building$)
+jogu_main_loop(r, starting_index$)
 

@@ -36,10 +36,13 @@ TODO
 include utils/dumper.bas % dumper
 include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp
 
-! ************** MAIN FUNCTION ***************
-fn.def load_jogu_data(records, datafile$)
 
-! CONSTANTS
+! MAIN FUNCTION START
+
+fn.def load_jogu_data(records, config, datafile$)
+
+
+! ************** CONFIG ***************
 
 let CONST_BUILDING_RECORD_KEYS_COUNT = 1 % building
 let label_building$    = "building"
@@ -52,10 +55,11 @@ let label_exits$       = "exits"
 list.create S, valid_location_keys_list
 list.add valid_location_keys_list, label_location$, label_description$, label_exits$
 
-! Config
-!debug.on
+let label_starting_location$ = "starting_location"
 
-! #########################################
+! ************** LOAD DATA ***************
+
+!debug.on
 
 ! Setup
 file.exists is_datafile_ok, datafile$
@@ -100,6 +104,9 @@ split records_raw$[], serial_data$, "#\n"
 array.length num_records_split, records_raw$[]
 debug.print "there are "+format$("###", num_records_split)+" split records"
 
+
+! ************** PARSE DATA ***************
+
 !debug.on
 
 building$ = ""
@@ -120,7 +127,7 @@ for i=1 to num_records_split
     for j=1 to num_fields
         ! validate record format
         if ! is_in(":", fields$[j])
-            end error_msg$+"Missing separator ':' in line: " + fields$[j] + "\nCannot continue."
+            end error_msg$+"Missing separator ':' in line: '" + fields$[j] + "'\nCannot continue."
         end if
 
         ! parse the record
@@ -157,15 +164,22 @@ for i=1 to num_records_split
 
             ! save record
             bundle.put record, label$, content$
-        end if
+        end if % exits
 
         ! update current building
         if label$ = label_building$ then building$ = content$
 
         ! save current location
-        if label$ = label_location$ then location$ = content$
+        if label$ = label_location$ then
+            location$ = content$
 
-    next
+            ! Save first location record
+            bundle.contain config, label_starting_location$, is_starting_location_saved
+            if ! is_starting_location_saved then bundle.put config, label_starting_location$, building$ + "+" + location$
+            debug.print "debug location:"+ building$ + "+" + location$
+        end if
+
+    next j % fields in record
 
     debug.print "Record bundle:"
     debug.dump.bundle record
@@ -180,9 +194,10 @@ for i=1 to num_records_split
     !debug.print "Records bundle:"
     !debug.dump.bundle records
 
-next i
+next i % number of records
 
 !dumper(records)
+
 
 ! ************** VALIDATE DATA ***************
 
@@ -277,23 +292,28 @@ debug.print "--------------------------"
 debug.print "Records bundle:"
 debug.dump.bundle records
 
-!include dumper.bas
 !dumper(records)
 
-fn.rtn records
+fn.rtn 1 % data is returned via input params, not here
 
 fn.end
 
+
 !!
-! ####################################
-! Test
+! ************** TEST ***************
 
-bundle.create b
+! Inputs
 let datafile$ = "jogu_data.txt"
-load_jogu_data(&b, datafile$)
 
-!include dumper.bas
-debug.off
+! Outputs
+bundle.create b % contains all location records
+bundle.create c % contains start location
+
+! Run
+load_jogu_data(&b, &c, datafile$)
+
+! Show result
 dumper(b)
+dumper(c)
 
 !!
