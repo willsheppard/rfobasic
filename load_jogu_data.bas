@@ -6,6 +6,8 @@ Load a text data file and process the records into a hash of hashes (bundle of b
 
 The custom data format is designed to be human writeable, the focus being on ease-of-use from a mobile device.
 
+Designed to be called by jogu_adventure.bas
+
 NOTES
 
 Patches welcome.
@@ -22,6 +24,10 @@ http://github.com/willsheppard/rfobasic
 TODO
 * Use grabfile to read file, and split on \n
 * Validate data: Required fields, unexpected fields, exits must all lead somewhere, etc.
+* Change "building" to "area" everywhere
+* Support multiple buildings
+* Change "+" joining char to "/" and abstract out
+* Make the first location in the file the starting location, so we don't have to specify it in the code
 !!
 
 
@@ -35,16 +41,16 @@ fn.def load_jogu_data(records, datafile$)
 
 ! CONSTANTS
 
+let CONST_BUILDING_RECORD_KEYS_COUNT = 1 % building
 let label_building$    = "building"
+
+let CONST_LOCATION_RECORD_KEYS_COUNT = 3 % loc, desc, exits
 let label_location$    = "loc"
 let label_description$ = "desc"
 let label_exits$       = "exits"
 
 list.create S, valid_location_keys_list
 list.add valid_location_keys_list, label_location$, label_description$, label_exits$
-
-let CONST_LOCATION_RECORD_KEYS_COUNT = 3 % loc, desc, exits
-let CONST_BUILDING_RECORD_KEYS_COUNT = 1
 
 ! Config
 !debug.on
@@ -53,7 +59,7 @@ let CONST_BUILDING_RECORD_KEYS_COUNT = 1
 
 ! Setup
 file.exists is_datafile_ok, datafile$
-if ! is_datafile_ok then end "Error: Cannot open file \""+datafile$+"\" (does it exist?). Cannot continue."
+if ! is_datafile_ok then end "Error: Failed to open file \""+datafile$+"\" (does it exist in the data directory?). Cannot continue."
 text.open r, fh, datafile$
 let data_started = 0
 let serial_data$ = ""
@@ -178,7 +184,8 @@ next i
 
 !dumper(records)
 
-! Validate
+! ************** VALIDATE DATA ***************
+
 let error_msg$ = "Data validation error in file '"+ datafile$ +"': "
 !debug.on
 
@@ -189,8 +196,10 @@ list.toarray locations_list, locations_array$[]
 debug.dump.array locations_array$[]
 array.length num_locations, locations_array$[]
 debug.print "length = "+str$(num_locations)
+
 for a = 1 to num_locations
-    bundle.get records, locations_array$[a], record
+    let full_location_key$ = locations_array$[a]
+    bundle.get records, full_location_key$, record
 
     debug.dump.bundle record
     list.create S, record_keys_list
@@ -204,6 +213,8 @@ for a = 1 to num_locations
     bundle.contain record, label_building$, is_building
     debug.print " is building? "+str$(is_building)
     if is_building
+        bundle.get record, label_building$, test_building$
+        debug.print "Validating building record '"+ test_building$ + "'"
         if num_record_keys <> CONST_BUILDING_RECORD_KEYS_COUNT
             print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_BUILDING_RECORD_KEYS_COUNT)+" for building record:"
             dumper(record)
@@ -214,7 +225,8 @@ for a = 1 to num_locations
 
     else
         ! assume it is a location record
-
+        bundle.get record, label_location$, test_location$
+        debug.print "Validating location record '"+ test_location$ + "'"
         if num_record_keys <> CONST_LOCATION_RECORD_KEYS_COUNT then
             print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_LOCATION_RECORD_KEYS_COUNT)+" for location record:"
             dumper(record)
@@ -224,16 +236,42 @@ for a = 1 to num_locations
         ! are the location keys all valid?
         for b = 1 to num_record_keys
             let this_key$ = record_keys_array$[b]
-        list.search valid_location_keys_list, this_key$, is_valid
-        if ! is_valid then
-            print error_msg$+"Found invalid key '"+this_key$+"' for location record:"
+            list.search valid_location_keys_list, this_key$, is_valid
+            if ! is_valid then
+                print error_msg$+"Found invalid key '"+this_key$+"' for location record:"
+                dumper(record)
+                print "Expected one of: " + list_summary$(valid_location_keys_list)
+                end "Cannot continue."
+            end if
+        next b
+
+    ! Make sure all exits lead somewhere
+    bundle.get record, label_exits$, exits_bundle
+    bundle.keys exits_bundle, exits_list
+    array.delete exits_array$[]
+    list.toarray exits_list, exits_array$[]
+    array.length num_exits, exits_array$[]
+
+    ! Extract the building name from the key
+    array.delete location_parts$[]
+    split location_parts$[], full_location_key$, "\\+"
+    let test_building$ = location_parts$[1]
+
+    for d = 1 to num_exits
+        bundle.get exits_bundle, exits_array$[d], destination$
+        full_destination$ = test_building$ + "+" + destination$
+        debug.print " full_destination = "+ full_destination$
+        bundle.contain records, full_destination$, is_valid_location
+        if ! is_valid_location then
+            print error_msg$+"Could not find location '"+destination$+"' in building '"+test_building$+"':"
             dumper(record)
-            print "Expected one of: " + list_summary$(valid_location_keys_list)
             end "Cannot continue."
         end if
-        next b
-    end if
-next a
+    next d % num_exits
+
+    end if % location record
+
+next a % num_locations (validation)
 
 debug.print "--------------------------"
 debug.print "Records bundle:"

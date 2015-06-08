@@ -12,7 +12,9 @@ The associated text data file can be rewritten with whatever new locations you c
 
 NOTES
 
-If I had more time, I would add objects which can be examined, picked up and used.
+If I had more time, I would add:
+- multiple buildings
+- objects which can be examined, picked up and used
 
 Program flow:
 
@@ -61,8 +63,8 @@ let starting_location$ = starting_building$ + "+" + starting_location$
 bundle.contain r, starting_location$, start_exists
 if start_exists = 0 then end "ERROR: start location \"" + starting_location$ + "\" not found"
 
-current_location$ = starting_location$
-current_building$ = starting_building$
+!current_location$ = starting_location$
+!current_building$ = starting_building$
 
 ! ******************************************
 ! Display current location
@@ -128,7 +130,6 @@ fn.def jogu_main_loop(r, current_location$, current_building$)
 
     ! Direction is valid, change location
     bundle.get exits_bundle, parsed_exit$, new_location$
-    new_location_key$ = current_building$ + "+" + new_location$
     current_location$ = current_building$ + "+" + new_location$
 
     w_r.continue
@@ -225,5 +226,5 @@ fn.end
 ! ##########################################
 ! Main
 
-jogu_main_loop(r, current_location$, current_building$)
+jogu_main_loop(r, starting_location$, starting_building$)
 
