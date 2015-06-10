@@ -40,41 +40,40 @@ http://github.com/willsheppard/rfobasic
 
 !!
 
-! Load data
-include load_jogu_data.bas % load_jogu_data
-!include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp % already loaded from load_jogu_data.bas
-
-! Outputs
-bundle.create r % r for records
-bundle.create c % c for config
-
-! Inputs
-let datafile$ = "jogu_data.txt"
-
-load_jogu_data(&r, &c, datafile$)
-
-!dumper(r)
-
-! Get starting location from the data
-let label_starting_location$ = "starting_location"
-bundle.get c, label_starting_location$, starting_index$
-
-
-bundle.contain r, starting_index$, start_exists
-if start_exists = 0 then end "ERROR: start location \"" + starting_index$ + "\" not found"
-
 ! ******************************************
-! Display current location
-fn.def jogu_main_loop(r, current_location$)
+fn.def jogu_adventure(r, c)
 ! ******************************************
+
+    ! Get location separators and regex from the config data
+    bundle.get c, "area_location_separator", CONST_AREA_SEPARATOR$
+    bundle.get c, "area_location_separator_regex", CONST_AREA_SEPARATOR_REGEX$
+
+    ! Get starting location from config data
+    let label_starting_location$ = "starting_location"
+    bundle.get c, label_starting_location$, starting_index$
+
+    debug.print " starting_index = "+ starting_index$
+
+    bundle.contain r, starting_index$, start_exists
+    if start_exists = 0 then end "ERROR: start location \"" + starting_index$ + "\" not found"
+
+    let current_location$ = starting_index$
+
     let quit = 0
+
+    ! ************** MAIN LOOP ***************
+
     while quit = 0
     !cls
 
     ! Extract the building name from the key
     array.delete location_parts$[]
-    split location_parts$[], current_location$, "\\+"
+    split location_parts$[], current_location$, CONST_AREA_SEPARATOR_REGEX$ 
     let current_building$ = location_parts$[1]
+
+    debug.print " CONST_AREA_SEPARATOR_REGEX = "+CONST_AREA_SEPARATOR_REGEX$
+    debug.print " current_location = "+ current_location$
+    debug.print "current_building = "+ current_building$
 
     ! Check current location
     bundle.contain r, current_location$, current_exists
@@ -132,7 +131,7 @@ fn.def jogu_main_loop(r, current_location$)
 
     ! Direction is valid, change location
     bundle.get exits_bundle, parsed_exit$, new_location$
-    current_location$ = current_building$ + "+" + new_location$
+    current_location$ = current_building$ + CONST_AREA_SEPARATOR$ + new_location$
 
     w_r.continue
 
@@ -225,8 +224,25 @@ fn.def parse_quit$(command$)
 fn.end
 
 
-! ##########################################
-! Main
+! ************** SETUP ***************
 
-jogu_main_loop(r, starting_index$)
+! Load data
+include load_jogu_data.bas % load_jogu_data
+!include utils/toolkit.bas % list_summary, bundle_get_keys, substr, chomp % already loaded from load_jogu_data.bas
+
+! Outputs
+bundle.create r % r for records
+bundle.create c % c for config
+
+! Inputs
+let datafile$ = "jogu_data.txt"
+
+load_jogu_data(&r, &c, datafile$)
+
+!dumper(r)
+!dumper(c)
+
+! ************** START ***************
+
+jogu_adventure(r, c)
 

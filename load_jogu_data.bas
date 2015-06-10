@@ -26,8 +26,7 @@ TODO
 * Validate data: Required fields, unexpected fields, exits must all lead somewhere, etc.
 * Change "building" to "area" everywhere
 * Support multiple buildings
-* Change "+" joining char to "/" and abstract out
-* Make the first location in the file the starting location, so we don't have to specify it in the code
+* Have joining char returned to app
 !!
 
 
@@ -44,6 +43,9 @@ fn.def load_jogu_data(records, config, datafile$)
 
 ! ************** CONFIG ***************
 
+let CONST_AREA_SEPARATOR$ = "/"
+let CONST_AREA_SEPARATOR_REGEX$ = "\\"+CONST_AREA_SEPARATOR$
+
 let CONST_BUILDING_RECORD_KEYS_COUNT = 1 % building
 let label_building$    = "building"
 
@@ -55,7 +57,15 @@ let label_exits$       = "exits"
 list.create S, valid_location_keys_list
 list.add valid_location_keys_list, label_location$, label_description$, label_exits$
 
+! Define config keys
 let label_starting_location$ = "starting_location"
+let label_area_location_separator$ = "area_location_separator"
+let label_area_location_separator_regex$ = "area_location_separator_regex"
+
+! Save config 
+bundle.put config, label_area_location_separator$, CONST_AREA_SEPARATOR$
+bundle.put config, label_area_location_separator_regex$, CONST_AREA_SEPARATOR_REGEX$
+
 
 ! ************** LOAD DATA ***************
 
@@ -175,7 +185,7 @@ for i=1 to num_records_split
 
             ! Save first location record
             bundle.contain config, label_starting_location$, is_starting_location_saved
-            if ! is_starting_location_saved then bundle.put config, label_starting_location$, building$ + "+" + location$
+            if ! is_starting_location_saved then bundle.put config, label_starting_location$, building$ + CONST_AREA_SEPARATOR$ + location$
             debug.print "debug location:"+ building$ + "+" + location$
         end if
 
@@ -188,7 +198,7 @@ for i=1 to num_records_split
 
     ! add record to the main bundle, indexed by building+location
     ! building entries won't have a location
-    record_key$ = building$+"+"+location$
+    record_key$ = building$+ CONST_AREA_SEPARATOR$ +location$
     bundle.put records, record_key$, record
 
     !debug.print "Records bundle:"
@@ -216,7 +226,9 @@ for a = 1 to num_locations
     let full_location_key$ = locations_array$[a]
     bundle.get records, full_location_key$, record
 
-    debug.dump.bundle record
+    !print "validating record:"
+    !dumper(record)
+
     list.create S, record_keys_list
     bundle.keys record, record_keys_list
     array.delete record_keys_array$[]
@@ -262,6 +274,7 @@ for a = 1 to num_locations
 
     ! Make sure all exits lead somewhere
     bundle.get record, label_exits$, exits_bundle
+    !dumper(exits_bundle)
     bundle.keys exits_bundle, exits_list
     array.delete exits_array$[]
     list.toarray exits_list, exits_array$[]
@@ -269,16 +282,20 @@ for a = 1 to num_locations
 
     ! Extract the building name from the key
     array.delete location_parts$[]
-    split location_parts$[], full_location_key$, "\\+"
+    split location_parts$[], full_location_key$, CONST_AREA_SEPARATOR_REGEX$
     let test_building$ = location_parts$[1]
+
+    debug.print " CONST_AREA_SEPARATOR_REGEX = "+CONST_AREA_SEPARATOR_REGEX$
+    debug.print "full_location_key = "+full_location_key$
+    debug.print "test_building = "+ test_building$
 
     for d = 1 to num_exits
         bundle.get exits_bundle, exits_array$[d], destination$
-        full_destination$ = test_building$ + "+" + destination$
+        full_destination$ = test_building$ + CONST_AREA_SEPARATOR$ + destination$
         debug.print " full_destination = "+ full_destination$
         bundle.contain records, full_destination$, is_valid_location
         if ! is_valid_location then
-            print error_msg$+"Could not find location '"+destination$+"' in building '"+test_building$+"':"
+            print error_msg$+"Could not find location '"+full_destination$+"' in building '"+test_building$+"':"
             dumper(record)
             end "Cannot continue."
         end if
