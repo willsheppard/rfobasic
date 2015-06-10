@@ -25,7 +25,7 @@ TODO
 * Use grabfile to read file, and split on \n
 * Validate data: Required fields, unexpected fields, exits must all lead somewhere, etc.
 * Change "building" to "area" everywhere
-* Support multiple buildings
+* Support multiple areas
 * Have joining char returned to app
 !!
 
@@ -46,8 +46,8 @@ fn.def load_jogu_data(records, config, datafile$)
 let CONST_AREA_SEPARATOR$ = "/"
 let CONST_AREA_SEPARATOR_REGEX$ = "\\"+CONST_AREA_SEPARATOR$
 
-let CONST_BUILDING_RECORD_KEYS_COUNT = 1 % building
-let label_building$    = "building"
+let CONST_AREA_RECORD_KEYS_COUNT = 1 % area
+let label_area$    = "area"
 
 let CONST_LOCATION_RECORD_KEYS_COUNT = 3 % loc, desc, exits
 let label_location$    = "loc"
@@ -119,7 +119,7 @@ debug.print "there are "+format$("###", num_records_split)+" split records"
 
 !debug.on
 
-building$ = ""
+area$ = ""
 for i=1 to num_records_split
     debug.print "record "+format$("#",i)+" = '"+records_raw$[i]+"'"
 
@@ -176,8 +176,8 @@ for i=1 to num_records_split
             bundle.put record, label$, content$
         end if % exits
 
-        ! update current building
-        if label$ = label_building$ then building$ = content$
+        ! update current area
+        if label$ = label_area$ then area$ = content$
 
         ! save current location
         if label$ = label_location$ then
@@ -185,8 +185,8 @@ for i=1 to num_records_split
 
             ! Save first location record
             bundle.contain config, label_starting_location$, is_starting_location_saved
-            if ! is_starting_location_saved then bundle.put config, label_starting_location$, building$ + CONST_AREA_SEPARATOR$ + location$
-            debug.print "debug location:"+ building$ + "+" + location$
+            if ! is_starting_location_saved then bundle.put config, label_starting_location$, area$ + CONST_AREA_SEPARATOR$ + location$
+            debug.print "debug location:"+ area$ + "+" + location$
         end if
 
     next j % fields in record
@@ -194,11 +194,11 @@ for i=1 to num_records_split
     debug.print "Record bundle:"
     debug.dump.bundle record
 
-    if building$ = "" then end error_msg$+"Missing building definition. Cannot continue"
+    if area$ = "" then end error_msg$+"Missing area definition. Cannot continue"
 
-    ! add record to the main bundle, indexed by building+location
-    ! building entries won't have a location
-    record_key$ = building$+ CONST_AREA_SEPARATOR$ +location$
+    ! add record to the main bundle, indexed by area+location
+    ! area entries won't have a location
+    record_key$ = area$+ CONST_AREA_SEPARATOR$ +location$
     bundle.put records, record_key$, record
 
     !debug.print "Records bundle:"
@@ -236,19 +236,19 @@ for a = 1 to num_locations
     array.length num_record_keys, record_keys_array$[]
     debug.print "num_record_keys = "+str$(num_record_keys)
 
-    ! is it a building record?
-    bundle.contain record, label_building$, is_building
-    debug.print " is building? "+str$(is_building)
-    if is_building
-        bundle.get record, label_building$, test_building$
-        debug.print "Validating building record '"+ test_building$ + "'"
-        if num_record_keys <> CONST_BUILDING_RECORD_KEYS_COUNT
-            print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_BUILDING_RECORD_KEYS_COUNT)+" for building record:"
+    ! is it a area record?
+    bundle.contain record, label_area$, is_area
+    debug.print " is area? "+str$(is_area)
+    if is_area
+        bundle.get record, label_area$, test_area$
+        debug.print "Validating area record '"+ test_area$ + "'"
+        if num_record_keys <> CONST_AREA_RECORD_KEYS_COUNT
+            print error_msg$+"Found "+str$(num_record_keys)+" keys but expected "+str$(CONST_AREA_RECORD_KEYS_COUNT)+" for area record:"
             dumper(record)
             end "Cannot continue."
         end if
 
-        if record_keys_array$[1] <> label_building$ then end error_msg$+ "Expected building key of '"+label_building$ +"', not '"+ record_keys_array$[1] +"'. Cannot continue."
+        if record_keys_array$[1] <> label_area$ then end error_msg$+ "Expected area key of '"+label_area$ +"', not '"+ record_keys_array$[1] +"'. Cannot continue."
 
     else
         ! assume it is a location record
@@ -280,22 +280,22 @@ for a = 1 to num_locations
     list.toarray exits_list, exits_array$[]
     array.length num_exits, exits_array$[]
 
-    ! Extract the building name from the key
+    ! Extract the area name from the key
     array.delete location_parts$[]
     split location_parts$[], full_location_key$, CONST_AREA_SEPARATOR_REGEX$
-    let test_building$ = location_parts$[1]
+    let test_area$ = location_parts$[1]
 
     debug.print " CONST_AREA_SEPARATOR_REGEX = "+CONST_AREA_SEPARATOR_REGEX$
     debug.print "full_location_key = "+full_location_key$
-    debug.print "test_building = "+ test_building$
+    debug.print "test_area = "+ test_area$
 
     for d = 1 to num_exits
         bundle.get exits_bundle, exits_array$[d], destination$
-        full_destination$ = test_building$ + CONST_AREA_SEPARATOR$ + destination$
+        full_destination$ = test_area$ + CONST_AREA_SEPARATOR$ + destination$
         debug.print " full_destination = "+ full_destination$
         bundle.contain records, full_destination$, is_valid_location
         if ! is_valid_location then
-            print error_msg$+"Could not find location '"+full_destination$+"' in building '"+test_building$+"':"
+            print error_msg$+"Could not find location '"+full_destination$+"' in area '"+test_area$+"':"
             dumper(record)
             end "Cannot continue."
         end if

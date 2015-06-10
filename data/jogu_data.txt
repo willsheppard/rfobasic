@@ -2,15 +2,16 @@
 
 ### START
 #
-building: Number 32
-#
-loc: Hallway
-desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
-exits: N=Living Room,E= Bedroom, W = Entrance Hallway,S =Kitchen
+! a house
+area: Number 32
 #
 loc: Entrance Hallway
 desc: A long hallway
 exits: E=Hallway
+#
+loc: Hallway
+desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
+exits: N=Living Room,E= Bedroom, W = Entrance Hallway,S =Kitchen
 #
 loc: Bedroom
 ! This is a random comment, which is ignored
@@ -74,17 +75,18 @@ Formatting rules:
 * any text before "### START" or after "### END" is ignored.
 * records are separated by a "#" character on its own line
 * there are two types of record:
-    * building records, which are applied to all records following them until the next building record
+    * area records, which are applied to all records following them until the next area record
     * location records
 * records consist of one or more lines of the format "key: value"
-* building records consist of a single "building" key, a colon (:) and the name of the building
+* area records consist of a single "area" key, a colon (:) and the name of the area
 * location records consist of these keys, followed by a colon (:) and a value
     * loc: human readable name of location
     * desc: description of location
     * exits: special format described below
-* exit values are a comma separated list of exit names and location names joined by an equals sign (=)
+* exit values are a comma separated list of exit names and location names joined by an equals sign (=). Example:
+        exits: N=Old Woodshed, S=Back Porch
     * valid exit names are uppercase: N, E, S, W, NE, SE, SW, NW (representing compass points as is traditional)
     * valid location names are exact matches for "loc" values (case sensitive)
 * no line-breaks are allowed within each key-value line.
 * The first location record found in the data file will be the starting location.
-* TO DO: More than one building
+* TO DO: More than one area

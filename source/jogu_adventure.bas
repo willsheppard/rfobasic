@@ -66,14 +66,14 @@ fn.def jogu_adventure(r, c)
     while quit = 0
     !cls
 
-    ! Extract the building name from the key
+    ! Extract the area name from the key
     array.delete location_parts$[]
     split location_parts$[], current_location$, CONST_AREA_SEPARATOR_REGEX$ 
-    let current_building$ = location_parts$[1]
+    let current_area$ = location_parts$[1]
 
     debug.print " CONST_AREA_SEPARATOR_REGEX = "+CONST_AREA_SEPARATOR_REGEX$
     debug.print " current_location = "+ current_location$
-    debug.print "current_building = "+ current_building$
+    debug.print "current_area = "+ current_area$
 
     ! Check current location
     bundle.contain r, current_location$, current_exists
@@ -88,7 +88,7 @@ fn.def jogu_adventure(r, c)
 
     ! Display current location
     print ""
-    print "(" + current_building$ + ")"
+    print "(" + current_area$ + ")"
     print "==================================="
     print loc$
     print ""
@@ -131,7 +131,7 @@ fn.def jogu_adventure(r, c)
 
     ! Direction is valid, change location
     bundle.get exits_bundle, parsed_exit$, new_location$
-    current_location$ = current_building$ + CONST_AREA_SEPARATOR$ + new_location$
+    current_location$ = current_area$ + CONST_AREA_SEPARATOR$ + new_location$
 
     w_r.continue
 
