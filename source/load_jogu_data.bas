@@ -23,12 +23,10 @@ http://github.com/willsheppard/rfobasic
 !!
 TODO
 * Use grabfile to read file, and split on \n
-* Validate data: Required fields, unexpected fields, exits must all lead somewhere, etc.
-* Change "building" to "area" everywhere
 * Support multiple areas
-* Have joining char returned to app
 !!
 
+debug.off
 
 ! INCLUDES
 
@@ -285,17 +283,29 @@ for a = 1 to num_locations
     split location_parts$[], full_location_key$, CONST_AREA_SEPARATOR_REGEX$
     let test_area$ = location_parts$[1]
 
+    !debug.on
     debug.print " CONST_AREA_SEPARATOR_REGEX = "+CONST_AREA_SEPARATOR_REGEX$
     debug.print "full_location_key = "+full_location_key$
     debug.print "test_area = "+ test_area$
 
     for d = 1 to num_exits
         bundle.get exits_bundle, exits_array$[d], destination$
-        full_destination$ = test_area$ + CONST_AREA_SEPARATOR$ + destination$
+
+        ! Is destination in a different area?
+        if is_in(CONST_AREA_SEPARATOR$, destination$) then
+            ! e.g. House/Room
+            full_destination$ = destination$
+        else
+            ! e.g. Room
+            full_destination$ = test_area$ + CONST_AREA_SEPARATOR$ + destination$
+        end if
+
         debug.print " full_destination = "+ full_destination$
+
         bundle.contain records, full_destination$, is_valid_location
         if ! is_valid_location then
             print error_msg$+"Could not find location '"+full_destination$+"' in area '"+test_area$+"':"
+
             dumper(record)
             end "Cannot continue."
         end if

@@ -8,13 +8,11 @@ DESCRIPTION
 
 A text adventure game / Interactive fiction.
 
-The associated text data file can be rewritten with whatever new locations you can dream up.
+This program allows the player to walk around different areas and read their descriptions. No manipulation of objects or other actions are possible.
 
 NOTES
 
-If I had more time, I would add:
-- multiple buildings/areas
-- objects which can be examined, picked up and used
+The associated text data file "jogu_data.txt" can be rewritten with whatever new locations you may dream up.
 
 Program flow:
 
@@ -102,8 +100,8 @@ fn.def jogu_adventure(r, c)
     tget command$, "Type a command > ", "Jogu Adventure"
 
     ! Remove newline from the end
-    array.delete command_chars$[]
-    split command_chars$[], command$, ""
+    !array.delete command_chars$[]
+    !split command_chars$[], command$, ""
     debug.print "You entered: '" + command$ + "'"
 
     ! Process raw input
@@ -131,7 +129,22 @@ fn.def jogu_adventure(r, c)
 
     ! Direction is valid, change location
     bundle.get exits_bundle, parsed_exit$, new_location$
-    current_location$ = current_area$ + CONST_AREA_SEPARATOR$ + new_location$
+
+    debug.print "current_area = " + current_area$
+    debug.print "new_location = " + new_location$
+
+    ! Is destination in a different area?
+    if is_in(CONST_AREA_SEPARATOR$, new_location$) then
+        ! e.g. House/Room
+        full_destination$ = new_location$
+    else
+        ! e.g. Room
+        full_destination$ = current_area$ + CONST_AREA_SEPARATOR$ + new_location$
+    end if
+
+    debug.print "full_destination = "+ full_destination$
+
+    current_location$ = full_destination$
 
     w_r.continue
 

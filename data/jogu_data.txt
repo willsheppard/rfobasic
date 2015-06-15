@@ -6,8 +6,8 @@
 area: Number 32
 #
 loc: Entrance Hallway
-desc: A long hallway
-exits: E=Hallway
+desc: A hallway with white walls and a shaggy carpet. There are some switches on the wall, and some mail on a table.
+exits: E=Hallway, N=Street/Outside Number 32
 #
 loc: Hallway
 desc: A hallway with beautiful wooden parquet flooring. There are several pairs of shoes lined up along one wall.
@@ -48,15 +48,25 @@ exits: E=Behind the garden, W=Neighbour's patio
 #
 loc: Neighbour's patio
 desc: You are in your neighbours's garden. There is a low wall to the west, where you can see an apple tree in the next garden. To the north lies a passageway which leads back to the street.
-exits: N=Cowper Road, E=Garden passage, W=Apple tree
+exits: N=Street/Outside Number 32, E=Garden passage, W=Apple tree
 #
 loc: Apple tree
 desc: You can see several apples on the tree. There is a faint whiff of cat poo in the air.
 exits: E=Neighbour's patio
 #
-loc: Cowper Road
-desc: You are in Cowper Road, part of Poet's Corner - a peaceful Acton street. Cars are parked on both sides of the road. Some of the cars have bird poo on them.
-exits: S=Neighbour's patio
+area: Street
+#
+loc: Outside Number 32
+desc: You are in a peaceful street in Poet's Corner. Cars are parked on both sides of the road. Some of the cars have bird poo on them.
+exits: SW=Number 32/Neighbour's patio, S=Number 32/Entrance Hallway, W=Middle of street
+#
+loc: Middle of street
+desc: You are halfway down a street. There is nothing much here.
+exits: W=T junction, E=Outside Number 32
+#
+loc: T junction
+desc: There are many different shops here - BetFred, Sunny's paint shop, a newsagent's with today's newspapers displayed outside, a lighting shop and a taxi firm.
+exits: E=Middle of street
 ### END
 
 ! NOTES
@@ -87,6 +97,8 @@ Formatting rules:
         exits: N=Old Woodshed, S=Back Porch
     * valid exit names are uppercase: N, E, S, W, NE, SE, SW, NW (representing compass points as is traditional)
     * valid location names are exact matches for "loc" values (case sensitive)
+    * By default, location names are assumed to be within the same "area" to which they are joined. To define an exit as leading to a location in a different area, specify the area within the location name, separated by a forward slash. This slash character is defined in the file load_jogu_data.bas. Examples:
+        exits: E=Quarry/Cliff, W=Town/Street
 * no line-breaks are allowed within each key-value line.
-* The first location record found in the data file will be the starting location.
-* TO DO: More than one area
+* the first location record found in the data file will be the starting location.
+
