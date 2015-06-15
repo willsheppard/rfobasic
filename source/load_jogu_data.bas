@@ -23,7 +23,6 @@ http://github.com/willsheppard/rfobasic
 !!
 TODO
 * Use grabfile to read file, and split on \n
-* Support multiple areas
 !!
 
 debug.off
